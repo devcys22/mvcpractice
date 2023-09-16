@@ -37,7 +37,7 @@ public class DispatcherServlet extends HttpServlet {
             requestDispatcher.forward(request, response);
 
         } catch (Exception e) {
-            log.error("exception occured: [{}]", e.getMessage(), e);
+            log.error("exception occurred: [{}]", e.getMessage(), e);
             throw new ServletException(e);
         }
 
