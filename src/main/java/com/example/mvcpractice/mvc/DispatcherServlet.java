@@ -25,7 +25,7 @@ public class DispatcherServlet extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(DispatcherServlet.class);
 
-    private RequestMappingHandlerMapping requestMappingHandlerMapping;
+    private HandlerMapping handlerMapping;
 
     private List<HandlerAdapter> handlerAdapters;
 
@@ -33,8 +33,10 @@ public class DispatcherServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        requestMappingHandlerMapping = new RequestMappingHandlerMapping();
+        RequestMappingHandlerMapping requestMappingHandlerMapping = new RequestMappingHandlerMapping();
         requestMappingHandlerMapping.init();
+
+        handlerMapping = requestMappingHandlerMapping;
 
         viewResolvers = Collections.singletonList(new JspViewResolver());
         handlerAdapters = List.of(new SimpleControllerHandlerAdapter());
@@ -45,7 +47,7 @@ public class DispatcherServlet extends HttpServlet {
         log.info("[DispatcherServlet] service started. ");
 
         try {
-            Controller handler = requestMappingHandlerMapping.findHandler(new HandlerKey(RequestMethod.valueOf(request.getMethod()), request.getRequestURI()));
+            Object handler = handlerMapping.findHandler(new HandlerKey(RequestMethod.valueOf(request.getMethod()), request.getRequestURI()));
 
             HandlerAdapter handlerAdapter = handlerAdapters.stream()
                     .filter(ha -> ha.supports(handler))
