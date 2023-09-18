@@ -3,6 +3,7 @@ package com.example.mvcpractice.mvc;
 import com.example.mvcpractice.mvc.controller.Controller;
 import com.example.mvcpractice.mvc.controller.RequestMethod;
 import com.example.mvcpractice.mvc.view.JspViewResolver;
+import com.example.mvcpractice.mvc.view.ModelAndView;
 import com.example.mvcpractice.mvc.view.View;
 import com.example.mvcpractice.mvc.view.ViewResolver;
 import org.slf4j.Logger;
@@ -26,13 +27,17 @@ public class DispatcherServlet extends HttpServlet {
 
     private RequestMappingHandlerMapping requestMappingHandlerMapping;
 
+    private List<HandlerAdapter> handlerAdapters;
+
     private List<ViewResolver> viewResolvers;
 
     @Override
     public void init() throws ServletException {
         requestMappingHandlerMapping = new RequestMappingHandlerMapping();
         requestMappingHandlerMapping.init();
+
         viewResolvers = Collections.singletonList(new JspViewResolver());
+        handlerAdapters = List.of(new SimpleControllerHandlerAdapter());
     }
 
     @Override
@@ -41,11 +46,17 @@ public class DispatcherServlet extends HttpServlet {
 
         try {
             Controller handler = requestMappingHandlerMapping.findHandler(new HandlerKey(RequestMethod.valueOf(request.getMethod()), request.getRequestURI()));
-            String viewName = handler.handleRequest(request, response);
+
+            HandlerAdapter handlerAdapter = handlerAdapters.stream()
+                    .filter(ha -> ha.supports(handler))
+                    .findFirst()
+                    .orElseThrow(() -> new ServletException("No adapter for handler [" + handler + "]"));
+
+            ModelAndView modelAndView = handlerAdapter.handle(request, response, handler);
 
             for (ViewResolver viewResolver : viewResolvers) {
-                View view = viewResolver.resolveViewName(viewName);
-                view.render(new HashMap<>(), request, response);
+                View view = viewResolver.resolveViewName(modelAndView.getViewName());
+                view.render(modelAndView.getModel(), request, response);
             }
 
         } catch (Exception e) {
