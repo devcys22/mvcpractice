@@ -2,6 +2,7 @@ package com.example.mvcpractice.mvc.repository;
 
 import com.example.mvcpractice.mvc.model.User;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,5 +12,9 @@ public class UserRepository {
 
     public static void save(User user){
         users.put(user.getUserId(), user);
+    }
+
+    public static Collection<User> findAll() {
+        return users.values();
     }
 }
